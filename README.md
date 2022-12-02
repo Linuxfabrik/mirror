@@ -7,7 +7,7 @@ A script to create and update mirrors of RPM repositories. Currently it supports
 
 Runs on
 
-* RHEL 7 (and compatible)
+* RHEL 8 (and compatible)
 
 
 ## Mandatory Requirements
