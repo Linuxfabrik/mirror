@@ -51,7 +51,7 @@ Keys:
     * `github_user`: Mandatory, string. The username of the GitHub repo path. For example, `'Linuxfabrik'`.
     * `github_repo`: Mandatory, string. The repo name. For example, `'mirror'`.
     * `relative_target_path`: Mandatory, string. Target path where the repo should be placed, relative to `base_path`.
-    * `rpm_regex: Optional, string. A [Python Regular Expression](https://docs.python.org/3/howto/regex.html) which will be matched against the names of the release assets to select the correct RPM file. You can use `{latest_version}` as a placeholder, which will be replaced by the latest version (retrieved via the GitHub API) before matching. Note that the regex should only match one file, as the first matching file will be downloaded. Defaults to `'.*{latest_version}.*\.rpm'`
+    * `rpm_regex`: Optional, string. A [Python Regular Expression](https://docs.python.org/3/howto/regex.html) which will be matched against the names of the release assets to select the correct RPM file. You can use `{latest_version}` as a placeholder, which will be replaced by the latest version (retrieved via the GitHub API) before matching. Note that the regex should only match one file, as the first matching file will be downloaded. Defaults to `'.*{latest_version}.*\.rpm'`
     * `number_of_rpms_to_keep`: Optional, int. Number of older RPM files to keep. Note that this simply deletes all older files matching `*.rpm` in the target path directory. Defaults to `3`.
 
 
@@ -59,12 +59,12 @@ Keys:
 
 For this method to work, the repository needs to exist in `/etc/yum.repos.d`. However, it does not need to be enabled, therefore we generally recommend to disable them (to prevent the mirror server itself from accidentally using them).
 
-#. Create the repo file in `/etc/yum.repos.d`
-#. Prefix the file and the repoid if the repo is for a different OS. For example, you should prefix all CentOS 7 repos using `centos7-`.
-#. Edit the repo file and set `enabled=0` so that the mirror itself is not using the repo.
-#. Choose a target path. This path should be unique, to prevent multiple repos from overwriting eachother. If this is the case, insert the repo name or repoid somewhere in the target path.
-#. Determine if running `createrepo` is necessary or not. If the mirrored repo is not idential to the upstream repo (for example due to `includepkgs` or `excludepkgs` directives), you need to run `createrepo`. If this is not the case, you should avoid running it, since it destroys RHEL 8 module information.
-#. Run the commands manually for the first time to accept the GPG keys. For example:
+1. Create the repo file in `/etc/yum.repos.d`
+2. Prefix the file and the repoid if the repo is for a different OS. For example, you should prefix all CentOS 7 repos using `centos7-`.
+3. Edit the repo file and set `enabled=0` so that the mirror itself is not using the repo.
+4. Choose a target path. This path should be unique, to prevent multiple repos from overwriting eachother. If this is the case, insert the repo name or repoid somewhere in the target path.
+5. Determine if running `createrepo` is necessary or not. If the mirrored repo is not idential to the upstream repo (for example due to `includepkgs` or `excludepkgs` directives), you need to run `createrepo`. If this is not the case, you should avoid running it, since it destroys RHEL 8 module information.
+6. Run the commands manually for the first time to accept the GPG keys. For example:
 ```bash
 reposync --repoid='rocky8-baseos' --download-path='/var/www/html/mirror/rocky/8/BaseOS/x86_64/os/' --norepopath --downloadcomps --download-metadata
 
@@ -73,7 +73,7 @@ reposync --repoid='rocky8-baseos' --download-path='/var/www/html/mirror/rocky/8/
 chown -R apache:apache /var/www/html
 restorecon -Fvr /var/www/html
 ```
-#. Add the repo to the `reposync_repos` key in your config. For example:
+7. Add the repo to the `reposync_repos` key in your config. For example:
 ```yaml
 base_path: '/var/www/html/mirror'
 reposync_repos:
