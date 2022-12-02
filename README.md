@@ -51,7 +51,7 @@ Keys:
     * `github_user`: Mandatory, string. The username of the GitHub repo path. For example, `'Linuxfabrik'`.
     * `github_repo`: Mandatory, string. The repo name. For example, `'mirror'`.
     * `relative_target_path`: Mandatory, string. Target path where the repo should be placed, relative to `base_path`.
-    * `rpm_regex`: Optional, string. A [Python Regular Expression](https://docs.python.org/3/howto/regex.html) which will be matched against the names of the release assets to select the correct RPM file. You can use `{latest_version}` as a placeholder, which will be replaced by the latest version (retrieved via the GitHub API) before matching. Note that the regex should only match one file, as the first matching file will be downloaded. Defaults to `'.*{latest_version}.*\.rpm'`
+    * `rpm_regex`: Optional, string. A [Python Regular Expression](https://docs.python.org/3/howto/regex.html) which will be matched against the names of the release assets to select the correct RPM file. You can use `{latest_version}` as a placeholder, which will be replaced by the latest version (retrieved via the GitHub API) before matching. Note that the regex should only match one file, as the first matching file will be downloaded. Defaults to `'.*{latest_version}.*\.rpm'`.
     * `number_of_rpms_to_keep`: Optional, int. Number of older RPM files to keep. Note that this simply deletes all older files matching `*.rpm` in the target path directory. Defaults to `3`.
 
 
@@ -84,7 +84,7 @@ reposync_repos:
 
 ### Repo from GitHub release assets
 
-This method allows creating a RPM-repository using RPM from the latest GitHub release of a project. For example, for creating a repositories for [mydumper](https://github.com/mydumper/mydumper), use the following config:
+This method allows creating a RPM-repository using RPM from the latest GitHub release of a project. For example, to create a repository for [mydumper](https://github.com/mydumper/mydumper), use the following config:
 
 ```yaml
 base_path: '/var/www/html/mirror'
