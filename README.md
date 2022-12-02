@@ -18,7 +18,7 @@ cd /opt
 git clone --recurse-submodules https://github.com/Linuxfabrik/mirror.git
 ```
 * Create your configuration. The default path is `/etc/mirror.yml`.
-* Install `yum-utils` and `createrepo`
+* Install `yum-utils` and `createrepo`.
 * Point a webserver to the directory (`base_path` in the config).
 
 
@@ -45,11 +45,11 @@ Have a look at the `./example.yml` file.
 Keys:
 
 * `base_path`: Mandatory, string. Directory under which all the repos will be placed. This directory should be served by a webserver.
-* `reposync_repos`: List, optional. List of repositories to mirror using `reposync`. Subkeys:
+* `reposync_repos`: List, optional. List of repositories to mirror using `reposync`.<br>Subkeys:
     * `repoid`: Mandatory, string. Repo-ID. Can be found using `dnf repolist`.
     * `relative_target_path`: Mandatory, string. Target path where the repo should be placed, relative to `base_path`.
     * `createrepo`: Optional, boolean. If `createrepo` should be ran on the repo after mirroring or not. Only use this if the mirrored repo is not idential to the upstream repo (for example due to `includepkgs` or `excludepkgs` directives). Else, you should avoid running it, since it destroys RHEL 8 module information. Defaults to `false`.
-* `github_repos`: List, optional. List of repositories to create from GitHub the latest release assets.
+* `github_repos`: List, optional. List of repositories to create from GitHub the latest release assets.<br>Subkeys:
     * `github_user`: Mandatory, string. The username of the GitHub repo path. For example, `'Linuxfabrik'`.
     * `github_repo`: Mandatory, string. The repo name. For example, `'mirror'`.
     * `relative_target_path`: Mandatory, string. Target path where the repo should be placed, relative to `base_path`.
@@ -61,7 +61,7 @@ Keys:
 
 For this method to work, the repository needs to exist in `/etc/yum.repos.d`. However, it does not need to be enabled, therefore we generally recommend to disable them (to prevent the mirror server itself from accidentally using them).
 
-1. Create the repo file in `/etc/yum.repos.d`
+1. Create the repo file in `/etc/yum.repos.d`.
 2. Prefix the file and the repoid if the repo is for a different OS. For example, you should prefix all CentOS 7 repos using `centos7-`.
 3. Edit the repo file and set `enabled=0` so that the mirror itself is not using the repo.
 4. Choose a target path. This path should be unique, to prevent multiple repos from overwriting eachother. If this is the case, insert the repo name or repoid somewhere in the target path.
