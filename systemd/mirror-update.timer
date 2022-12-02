@@ -1,0 +1,9 @@
+[Unit]
+Description=Timer for mirror-update.service
+
+[Timer]
+OnCalendar=Sat 18:00:00
+Unit=mirror-update.service
+
+[Install]
+WantedBy=timers.target
