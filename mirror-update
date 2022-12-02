@@ -20,7 +20,7 @@ import lib.shell3
 import lib.url3
 
 __author__ = 'Linuxfabrik GmbH, Zurich/Switzerland'
-__version__ = '2022120201'
+__version__ = '2022120202'
 
 DESCRIPTION = "A script to create and update mirrors of RPM repositories."
 DEFAULT_CONFIG = '/etc/mirror.yml'
@@ -163,12 +163,13 @@ class MirrorUpdate:
         for repo in self.config['reposync_repos']:
             print(f'{repo["repoid"]} start')
 
-            if not mkdir(repo["relative_target_path"]):
+            target_path = os.path.join(repo["base_path"], repo["relative_target_path"])
+            if not mkdir(target_path):
                 continue
 
             cmd = "reposync --delete --repoid='{REPOID}' --download-path='{TARGET_PATH}' --norepopath --downloadcomps --download-metadata".format(
                 REPOID=repo["repoid"],
-                TARGET_PATH=repo["relative_target_path"],
+                TARGET_PATH=target_path,
             )
             if not run_cmd(cmd):
                 continue
@@ -176,7 +177,7 @@ class MirrorUpdate:
             if repo.get('createrepo', False) is True:
                 cmd = createrepo_command.format(
                     REPOID=repo["repoid"],
-                    TARGET_PATH=repo["relative_target_path"],
+                    TARGET_PATH=target_path,
                 )
                 if not run_cmd(cmd):
                     continue
@@ -188,9 +189,10 @@ class MirrorUpdate:
     def update_repos(self):
         print('--- Start of GitHub repos ---')
         for repo in self.config['reposync_repos']:
-            print(f'{repo["github_user"],}/{repo["github_repo"]} to {repo["relative_target_path"]} start')
+            target_path = os.path.join(repo["base_path"], repo["relative_target_path"])
+            print(f'{repo["github_user"],}/{repo["github_repo"]} to {target_path} start')
 
-            if not mkdir(repo["relative_target_path"]):
+            if not mkdir(target_path):
                 continue
 
             # get the latest version and the asset information from github
@@ -206,7 +208,7 @@ class MirrorUpdate:
             for asset in result.get('assets', []):
                 name = asset.get('name')
                 if repo["rpm_regex"].fullmatch(name):
-                    target_file = os.path.join(repo["relative_target_path"], name)
+                    target_file = os.path.join(target_path, name)
                     # only download if the files does not exist already
                     if not os.path.exists(target_file):
                         url = asset.get('browser_download_url')
@@ -219,17 +221,17 @@ class MirrorUpdate:
                             out_file.write(result)
                     break
 
-            # make sure there are number_of_rpms_to_keep rpms in the repo["relative_target_path"]
-            path = Path(repo["relative_target_path"])
+            # make sure there are number_of_rpms_to_keep rpms in the target path
+            path = Path(target_path)
             for entry in sorted(path.glob('*.rpm'), key=lambda x: x.stat().st_mtime)[:-repo.get('number_of_rpms_to_keep', 3)]:
                 print(f'Deleting {entry}.')
                 os.remove(entry)
 
-            # run createrepo on the repo["relative_target_path"]
-            cmd = createrepo_command.format(TARGET_PATH=repo["relative_target_path"])
+            # run createrepo on the target path
+            cmd = createrepo_command.format(TARGET_PATH=target_path)
             if not run_cmd(cmd):
                 continue
-            print(f'{repo["github_user"],}/{repo["github_repo"]} to {repo["relative_target_path"]} end')
+            print(f'{repo["github_user"],}/{repo["github_repo"]} to {target_path} end')
 
         print('--- End of GitHub repos ---')
 
