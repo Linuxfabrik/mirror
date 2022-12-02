@@ -98,5 +98,5 @@ github_repos:
 
 # Exit Codes
 
-0: success / config valid
-1: failed to read config / config invalid
+* 0: success / config valid
+* 1: failed to read config / config invalid
