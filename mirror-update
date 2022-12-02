@@ -20,7 +20,7 @@ import lib.shell3
 import lib.url3
 
 __author__ = 'Linuxfabrik GmbH, Zurich/Switzerland'
-__version__ = '2022120202'
+__version__ = '2022120203'
 
 DESCRIPTION = "A script to create and update mirrors of RPM repositories."
 DEFAULT_CONFIG = '/etc/mirror.yml'
@@ -163,7 +163,7 @@ class MirrorUpdate:
         for repo in self.config['reposync_repos']:
             print(f'{repo["repoid"]} start')
 
-            target_path = os.path.join(repo["base_path"], repo["relative_target_path"])
+            target_path = os.path.join(self.config["base_path"], repo["relative_target_path"])
             if not mkdir(target_path):
                 continue
 
@@ -189,7 +189,7 @@ class MirrorUpdate:
     def update_repos(self):
         print('--- Start of GitHub repos ---')
         for repo in self.config['reposync_repos']:
-            target_path = os.path.join(repo["base_path"], repo["relative_target_path"])
+            target_path = os.path.join(self.config["base_path"], repo["relative_target_path"])
             print(f'{repo["github_user"],}/{repo["github_repo"]} to {target_path} start')
 
             if not mkdir(target_path):
@@ -238,7 +238,7 @@ class MirrorUpdate:
 
     def chown_and_restorecon(self):
         run_cmd(f'chown -R apache:apache {self.config["base_path"]}')
-        run_cmd('frestorecon -Fr {self.config["base_path"]}')
+        run_cmd(f'restorecon -Fr {self.config["base_path"]}')
 
 
 def main():
