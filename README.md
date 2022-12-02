@@ -17,6 +17,7 @@ Runs on
 cd /opt
 git clone --recurse-submodules https://github.com/Linuxfabrik/mirror.git
 ```
+* Create your configuration. The default path is `/etc/mirror.yml`.
 * Install `yum-utils` and `createrepo`
 * Point a webserver to the directory (`base_path` in the config).
 
@@ -25,6 +26,7 @@ git clone --recurse-submodules https://github.com/Linuxfabrik/mirror.git
 
 * If using systemd, set up the timer and service:
 ```bash
+cd /opt/mirror
 cp -v systemd/mirror-update.service /etc/systemd/system/mirror-update.service
 cp -v systemd/mirror-update.timer /etc/systemd/system/mirror-update.timer
 
