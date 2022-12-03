@@ -40,7 +40,7 @@ systemctl enable --now mirror-update.timer
 
 ## Configuration
 
-Have a look at the `./example.yml` file.
+Have a look at the `/opt/mirror/example.yml` file.
 
 Keys:
 
