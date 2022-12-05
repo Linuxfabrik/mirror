@@ -20,7 +20,7 @@ import lib.shell3
 import lib.url3
 
 __author__ = 'Linuxfabrik GmbH, Zurich/Switzerland'
-__version__ = '2022120203'
+__version__ = '2022120501'
 
 DESCRIPTION = "A script to create and update mirrors of RPM repositories."
 DEFAULT_CONFIG = '/etc/mirror.yml'
@@ -59,19 +59,23 @@ def parse_args():
     return parser.parse_args()
 
 
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
+
 def run_cmd(cmd):
     success, result = lib.shell3.shell_exec(cmd)
     if not success:
-        print(f'Failed to run "{cmd}": {result}')
+        eprint(f'Failed to run "{cmd}": {result}')
         return False
 
     _, stderr, retc = result
     if retc != 0:
-        print(f'"{cmd}" failed with: {stderr}')
+        eprint(f'"{cmd}" failed with: {stderr}')
         return False
 
     if stderr:
-        print(f'"{cmd}" had errors: {stderr}')
+        eprint(f'"{cmd}" had errors: {stderr}')
         return False
 
     return True
@@ -82,8 +86,8 @@ def mkdir(path):
         os.makedirs(path)
     except OSError as e:
         if not os.path.isdir(path):
-            print(f'failed to create {path}')
-            print(e)
+            eprint(f'failed to create {path}')
+            eprint(e)
             return False
     return True
 
@@ -97,11 +101,11 @@ class MirrorUpdate:
         valid = True
         base_path = self.config.get('base_path')
         if not base_path:
-            print('Error: The config is missing the "base_path" key, or it is empty.')
+            eprint('Error: The config is missing the "base_path" key, or it is empty.')
             valid = False
 
         if not os.path.isdir(base_path):
-            print(f'Error: The "base_path" "{base_path}" is not a directory.')
+            eprint(f'Error: The "base_path" "{base_path}" is not a directory.')
             valid = False
 
         reposync_repos = self.config.get('reposync_repos', [])
@@ -113,12 +117,12 @@ class MirrorUpdate:
         for repo in reposync_repos:
             repoid = repo.get('repoid')
             if not repoid:
-                print('Error: There is a reposync repo without a "repoid" in the config. Skipping validation for this repo.')
+                eprint('Error: There is a reposync repo without a "repoid" in the config. Skipping validation for this repo.')
                 valid = False
                 continue
 
             if repoid in reposync_repos_repoids:
-                print(f'Warning: There are multiple reposync repos with the repoid "{repoid}".')
+                eprint(f'Warning: There are multiple reposync repos with the repoid "{repoid}".')
                 valid = False
             reposync_repos_repoids.add(repoid)
 
@@ -126,7 +130,7 @@ class MirrorUpdate:
                 try:
                     repo[key]
                 except KeyError:
-                    print(f'The reposync repo "{repoid}" is missing the "{key}" key.')
+                    eprint(f'The reposync repo "{repoid}" is missing the "{key}" key.')
                     valid = False
 
         github_repos = self.config.get('github_repos', [])
@@ -140,7 +144,7 @@ class MirrorUpdate:
                 try:
                     repo[key]
                 except KeyError:
-                    print(f'The github repo "{repo.get("github_user", "")}/{repo.get("github_repo", "")}" is missing the "{key}" key.')
+                    eprint(f'The github repo "{repo.get("github_user", "")}/{repo.get("github_repo", "")}" is missing the "{key}" key.')
                     valid = False
 
         return valid
@@ -199,7 +203,7 @@ class MirrorUpdate:
             github_url = f'https://api.github.com/repos/{repo["github_user"]}/{repo["github_repo"]}/releases/latest'
             success, result = lib.url3.fetch_json(github_url)
             if not success:
-                print(f'Failed to get latest_version from github: {result}')
+                eprint(f'Failed to get latest_version from github: {result}')
                 continue
             latest_version = result.get('tag_name', '').replace('v', '')
 
@@ -214,7 +218,7 @@ class MirrorUpdate:
                         url = asset.get('browser_download_url')
                         success, result = lib.url3.fetch(url)
                         if not success:
-                            print(f'Failed to download "{url}": {result}.')
+                            eprint(f'Failed to download "{url}": {result}.')
                             continue
 
                         with open(target_file, 'wb') as out_file:
@@ -251,13 +255,13 @@ def main():
         try:
             config = yaml.safe_load(file)
         except yaml.scanner.ScannerError:
-            print('Could not parse config file. Aborting...')
+            eprint('Could not parse config file. Aborting...')
             sys.exit(1)
 
     mirror_update = MirrorUpdate(config)
 
     if not mirror_update.validate_config():
-        print('Config is invalid. Aborting.')
+        eprint('Config is invalid. Aborting.')
         sys.exit(1)
 
     if args.CHECK_MODE:
