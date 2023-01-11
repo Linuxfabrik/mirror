@@ -65,7 +65,7 @@ For this method to work, the repository needs to exist in `/etc/yum.repos.d`. Ho
 2. Prefix the file and the repoid if the repo is for a different OS. For example, you should prefix all CentOS 7 repos using `centos7-`.
 3. Edit the repo file and set `enabled=0` so that the mirror itself is not using the repo.
 4. Choose a target path. This path should be unique, to prevent multiple repos from overwriting eachother. If this is the case, insert the repo name or repoid somewhere in the target path.
-5. Determine if running `createrepo` is necessary or not. If the mirrored repo is not idential to the upstream repo (for example due to `includepkgs` or `excludepkgs` directives), you need to run `createrepo`. If this is not the case, you should avoid running it, since it destroys RHEL 8 module information.
+5. Determine if running `createrepo` is necessary or not. If the mirrored repo is not identical to the upstream repo (for example due to `includepkgs` or `excludepkgs` directives), you need to run `createrepo`. If this is not the case, you should avoid running it, since it destroys RHEL 8 module information.
 6. Run the commands manually for the first time to accept the GPG keys. For example:
 ```bash
 reposync --repoid='rocky8-baseos' --download-path='/var/www/html/mirror/rocky/8/BaseOS/x86_64/os/' --norepopath --downloadcomps --download-metadata
