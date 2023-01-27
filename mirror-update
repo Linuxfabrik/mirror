@@ -20,7 +20,7 @@ import lib.shell3
 import lib.url3
 
 __author__ = 'Linuxfabrik GmbH, Zurich/Switzerland'
-__version__ = '2023012701'
+__version__ = '2023012702'
 
 DESCRIPTION = "A script to create and update mirrors of RPM repositories."
 DEFAULT_CONFIG = '/etc/mirror.yml'
@@ -164,7 +164,7 @@ class MirrorUpdate:
 
     def update_reposync_repos(self):
         print('--- Start of reposync repos ---')
-        for repo in self.config['reposync_repos']:
+        for repo in self.config.get('reposync_repos', []):
             print(f'{repo["repoid"]} start')
 
             target_path = os.path.join(self.config["base_path"], repo["relative_target_path"])
