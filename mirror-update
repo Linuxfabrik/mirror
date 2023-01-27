@@ -20,7 +20,7 @@ import lib.shell3
 import lib.url3
 
 __author__ = 'Linuxfabrik GmbH, Zurich/Switzerland'
-__version__ = '2023011301'
+__version__ = '2023012701'
 
 DESCRIPTION = "A script to create and update mirrors of RPM repositories."
 DEFAULT_CONFIG = '/etc/mirror.yml'
@@ -153,7 +153,7 @@ class MirrorUpdate:
     def run(self):
         self.clean_repo_data()
         self.update_reposync_repos()
-        self.update_repos()
+        self.update_github_repos()
         self.chown_and_restorecon()
 
 
@@ -190,7 +190,7 @@ class MirrorUpdate:
         print('--- End of reposync repos ---')
 
 
-    def update_repos(self):
+    def update_github_repos(self):
         print('--- Start of GitHub repos ---')
         for repo in self.config.get('github_repos', []):
             target_path = os.path.join(self.config["base_path"], repo["relative_target_path"])
@@ -208,10 +208,10 @@ class MirrorUpdate:
             latest_version = result.get('tag_name', '').replace('v', '')
 
             # find the correct asset and download it
-            repo["rpm_regex"] = re.compile(repo.get('rpm_regex', DEFAULT_RPM_REGEX).format(latest_version=latest_version))
+            rpm_regex = re.compile(repo.get('rpm_regex', DEFAULT_RPM_REGEX).format(latest_version=latest_version))
             for asset in result.get('assets', []):
                 name = asset.get('name')
-                if repo["rpm_regex"].fullmatch(name):
+                if rpm_regex.fullmatch(name):
                     target_file = os.path.join(target_path, name)
                     # only download if the files does not exist already
                     if not os.path.exists(target_file):
