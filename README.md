@@ -68,7 +68,9 @@ For this method to work, the repository needs to exist in `/etc/yum.repos.d`. Ho
 5. Determine if running `createrepo` is necessary or not. If the mirrored repo is not identical to the upstream repo (for example due to `includepkgs` or `excludepkgs` directives), you need to run `createrepo`. If this is not the case, you should avoid running it, since it destroys RHEL 8 module information.
 6. Run the commands manually for the first time to accept the GPG keys. For example:
 ```bash
-reposync --repoid='rocky8-baseos' --download-path='/var/www/html/mirror/rocky/8/BaseOS/x86_64/os/' --norepopath --downloadcomps --download-metadata
+REPOID='generic-graylog-5.0'
+DOWNLOAD_PATH=graylog/repo/el/stable/5.0/x86_64/
+reposync --repoid="$REPOID" --download-path="/var/www/html/mirror/$DOWNLOAD_PATH" --norepopath --downloadcomps --download-metadata
 
 # createrepo '/var/www/html/mirror/rocky/8/BaseOS/x86_64/os/' 
 
