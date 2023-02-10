@@ -20,7 +20,7 @@ import lib.shell3
 import lib.url3
 
 __author__ = 'Linuxfabrik GmbH, Zurich/Switzerland'
-__version__ = '2023012702'
+__version__ = '2023021001'
 
 DESCRIPTION = "A script to create and update mirrors of RPM repositories."
 DEFAULT_CONFIG = '/etc/mirror.yml'
@@ -216,7 +216,7 @@ class MirrorUpdate:
                     # only download if the files does not exist already
                     if not os.path.exists(target_file):
                         url = asset.get('browser_download_url')
-                        success, result = lib.url3.fetch(url)
+                        success, result = lib.url3.fetch(url, to_text=False)
                         if not success:
                             eprint(f'Failed to download "{url}": {result}.')
                             continue
