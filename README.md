@@ -73,7 +73,7 @@ Determine whether or not it is necessary to run `createrepo`. If the mirrored re
 Now run the commands manually for the first time to accept the GPG keys. For example:
 
 ```bash
-BASE_PATH='$BASE_PATH/mirror'
+BASE_PATH='/var/www/html/mirror'
 REPOID='mirror-rhel8-mariadb-10.6'
 DOWNLOAD_PATH='MariaDB/mariadb-10.6/yum/rhel/8/x86_64'
 reposync --repoid="$REPOID" --download-path="$BASE_PATH/$DOWNLOAD_PATH" --norepopath --downloadcomps --download-metadata
