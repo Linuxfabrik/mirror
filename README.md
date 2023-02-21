@@ -119,7 +119,7 @@ github_repos:
 * `number_of_rpms_to_keep`: Optional, int. Number of older RPM files to keep. Note that this simply deletes all older files matching `*.rpm` in the target path directory. Defaults to `3`.
 
 
-# Exit Codes
+## Exit Codes
 
 * 0: success / config valid
 * 1: failed to read config / config invalid
