@@ -7,12 +7,15 @@
 # License: The Unlicense, see LICENSE file.
 
 import argparse
+import logging
 import os
 import re
 import sys
 from pathlib import Path
 
-import yaml
+SYSTEMD = bool(os.getppid() == 1)
+if SYSTEMD:
+    import systemd.journal
 import yaml.scanner
 
 import lib.base3
@@ -20,7 +23,7 @@ import lib.shell3
 import lib.url3
 
 __author__ = 'Linuxfabrik GmbH, Zurich/Switzerland'
-__version__ = '2023021001'
+__version__ = '2023061301'
 
 DESCRIPTION = "A script to create and update mirrors of RPM repositories."
 DEFAULT_CONFIG = '/etc/mirror.yml'
@@ -59,53 +62,65 @@ def parse_args():
     return parser.parse_args()
 
 
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
+def init_logging():
+    logger = logging.getLogger()
+    logging.basicConfig(
+        format='%(levelname)s: %(message)s'
+    )
+    logger.setLevel(logging.INFO)
+
+    if SYSTEMD:
+        logger.addHandler(systemd.journal.JournalHandler())
+
+    return logger
 
 
-def run_cmd(cmd):
-    success, result = lib.shell3.shell_exec(cmd)
-    if not success:
-        eprint(f'Failed to run "{cmd}": {result}')
-        return False
-
-    _, stderr, retc = result
-    if retc != 0:
-        eprint(f'"{cmd}" failed with: {stderr}')
-        return False
-
-    if stderr:
-        eprint(f'"{cmd}" had errors: {stderr}')
-        return False
-
-    return True
-
-
-def mkdir(path):
-    try:
-        os.makedirs(path)
-    except OSError as e:
-        if not os.path.isdir(path):
-            eprint(f'failed to create {path}')
-            eprint(e)
-            return False
-    return True
 
 
 class MirrorUpdate:
-    def __init__(self, config):
+    def __init__(self, config, logger):
         self.config = config
+        self.logger = logger
+
+
+    def run_cmd(self, cmd):
+        success, result = lib.shell3.shell_exec(cmd)
+        self.logger.debug('Running command "{cmd}".')
+        if not success:
+            self.logger.error(f'Failed to run "{cmd}": {result}')
+            return False
+
+        _, stderr, retc = result
+        if retc != 0:
+            self.logger.error(f'"{cmd}" failed with: {stderr}')
+            return False
+
+        if stderr:
+            self.logger.warning(f'"{cmd}" had errors: {stderr}')
+            return False
+
+        return True
+
+
+    def mkdir(self, path):
+        try:
+            os.makedirs(path)
+        except OSError:
+            if not os.path.isdir(path):
+                self.logger.exception(f'failed to create {path}')
+                return False
+        return True
 
 
     def validate_config(self):
         valid = True
         base_path = self.config.get('base_path')
         if not base_path:
-            eprint('Error: The config is missing the "base_path" key, or it is empty.')
+            self.logger.error('The config is missing the "base_path" key, or it is empty.')
             valid = False
 
         if not os.path.isdir(base_path):
-            eprint(f'Error: The "base_path" "{base_path}" is not a directory.')
+            self.logger.error(f'The "base_path" "{base_path}" is not a directory.')
             valid = False
 
         reposync_repos = self.config.get('reposync_repos', [])
@@ -117,12 +132,12 @@ class MirrorUpdate:
         for repo in reposync_repos:
             repoid = repo.get('repoid')
             if not repoid:
-                eprint('Error: There is a reposync repo without a "repoid" in the config. Skipping validation for this repo.')
+                self.logger.error('There is a reposync repo without a "repoid" in the config. Skipping validation for this repo.')
                 valid = False
                 continue
 
             if repoid in reposync_repos_repoids:
-                eprint(f'Warning: There are multiple reposync repos with the repoid "{repoid}".')
+                self.logger.warning(f'There are multiple reposync repos with the repoid "{repoid}".')
                 valid = False
             reposync_repos_repoids.add(repoid)
 
@@ -130,7 +145,7 @@ class MirrorUpdate:
                 try:
                     repo[key]
                 except KeyError:
-                    eprint(f'The reposync repo "{repoid}" is missing the "{key}" key.')
+                    self.logger.error(f'The reposync repo "{repoid}" is missing the "{key}" key.')
                     valid = False
 
         github_repos = self.config.get('github_repos', [])
@@ -144,7 +159,7 @@ class MirrorUpdate:
                 try:
                     repo[key]
                 except KeyError:
-                    eprint(f'The github repo "{repo.get("github_user", "")}/{repo.get("github_repo", "")}" is missing the "{key}" key.')
+                    self.logger.error(f'The github repo "{repo.get("github_user", "")}/{repo.get("github_repo", "")}" is missing the "{key}" key.')
                     valid = False
 
         return valid
@@ -158,24 +173,24 @@ class MirrorUpdate:
 
 
     def clean_repo_data(self):
-        run_cmd('dnf clean expire-cache')
-        run_cmd('dnf repolist')
+        self.run_cmd('dnf clean expire-cache')
+        self.run_cmd('dnf repolist')
 
 
     def update_reposync_repos(self):
-        print('--- Start of reposync repos ---')
+        self.logger.info('--- Start of reposync repos ---')
         for repo in self.config.get('reposync_repos', []):
-            print(f'{repo["repoid"]} start')
+            self.logger.info(f'{repo["repoid"]} start')
 
             target_path = os.path.join(self.config["base_path"], repo["relative_target_path"])
-            if not mkdir(target_path):
+            if not self.mkdir(target_path):
                 continue
 
             cmd = "reposync --delete --repoid='{REPOID}' --download-path='{TARGET_PATH}' --norepopath --downloadcomps --download-metadata".format(
                 REPOID=repo["repoid"],
                 TARGET_PATH=target_path,
             )
-            if not run_cmd(cmd):
+            if not self.run_cmd(cmd):
                 continue
 
             if repo.get('createrepo', False) is True:
@@ -183,27 +198,27 @@ class MirrorUpdate:
                     REPOID=repo["repoid"],
                     TARGET_PATH=target_path,
                 )
-                if not run_cmd(cmd):
+                if not self.run_cmd(cmd):
                     continue
 
-            print(f'{repo["repoid"]} end')
-        print('--- End of reposync repos ---')
+            self.logger.info(f'{repo["repoid"]} end')
+        self.logger.info('--- End of reposync repos ---')
 
 
     def update_github_repos(self):
-        print('--- Start of GitHub repos ---')
+        self.logger.info('--- Start of GitHub repos ---')
         for repo in self.config.get('github_repos', []):
             target_path = os.path.join(self.config["base_path"], repo["relative_target_path"])
-            print(f'{repo["github_user"]}/{repo["github_repo"]} to {target_path} start')
+            self.logger.info(f'{repo["github_user"]}/{repo["github_repo"]} to {target_path} start')
 
-            if not mkdir(target_path):
+            if not self.mkdir(target_path):
                 continue
 
             # get the latest version and the asset information from github
             github_url = f'https://api.github.com/repos/{repo["github_user"]}/{repo["github_repo"]}/releases/latest'
             success, result = lib.url3.fetch_json(github_url)
             if not success:
-                eprint(f'Failed to get latest_version from github: {result}')
+                self.logger.error(f'Failed to get latest_version from github: {result}')
                 continue
             latest_version = result.get('tag_name', '').replace('v', '')
 
@@ -218,7 +233,7 @@ class MirrorUpdate:
                         url = asset.get('browser_download_url')
                         success, result = lib.url3.fetch(url, to_text=False)
                         if not success:
-                            eprint(f'Failed to download "{url}": {result}.')
+                            self.logger.error(f'Failed to download "{url}": {result}.')
                             continue
 
                         with open(target_file, 'wb') as out_file:
@@ -228,44 +243,45 @@ class MirrorUpdate:
             # make sure there are number_of_rpms_to_keep rpms in the target path
             path = Path(target_path)
             for entry in sorted(path.glob('*.rpm'), key=lambda x: x.stat().st_mtime)[:-repo.get('number_of_rpms_to_keep', 3)]:
-                print(f'Deleting {entry}.')
+                self.logger.info(f'Deleting {entry}.')
                 os.remove(entry)
 
             # run createrepo on the target path
             cmd = createrepo_command.format(TARGET_PATH=target_path)
-            if not run_cmd(cmd):
+            if not self.run_cmd(cmd):
                 continue
-            print(f'{repo["github_user"]}/{repo["github_repo"]} to {target_path} end')
+            self.logger.info(f'{repo["github_user"]}/{repo["github_repo"]} to {target_path} end')
 
-        print('--- End of GitHub repos ---')
+        self.logger.info('--- End of GitHub repos ---')
 
 
     def chown_and_restorecon(self):
-        run_cmd(f'chown -R apache:apache {self.config["base_path"]}')
-        run_cmd(f'restorecon -Fr {self.config["base_path"]}')
+        self.run_cmd(f'chown -R apache:apache {self.config["base_path"]}')
+        self.run_cmd(f'restorecon -Fr {self.config["base_path"]}')
 
 
 def main():
     """The main function. Hier spielt die Musik.
     """
     args = parse_args()
+    logger = init_logging()
 
-    print(f'Using config at {args.CONFIG}.')
+    logger.info(f'Using config at {args.CONFIG}.')
     with open(args.CONFIG, 'rb') as file:
         try:
             config = yaml.safe_load(file)
         except yaml.scanner.ScannerError:
-            eprint('Could not parse config file. Aborting...')
+            logger.exception('Could not parse config file. Aborting...')
             sys.exit(1)
 
-    mirror_update = MirrorUpdate(config)
+    mirror_update = MirrorUpdate(config, logger)
 
     if not mirror_update.validate_config():
-        eprint('Config is invalid. Aborting.')
+        logger.critical('Config is invalid. Aborting.')
         sys.exit(1)
 
     if args.CHECK_MODE:
-        print('Config is valid.')
+        logger.info('Config is valid.')
         sys.exit()
 
     mirror_update.run()
