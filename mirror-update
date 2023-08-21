@@ -23,7 +23,7 @@ import lib.shell3
 import lib.url3
 
 __author__ = 'Linuxfabrik GmbH, Zurich/Switzerland'
-__version__ = '2023061301'
+__version__ = '2023082101'
 
 DESCRIPTION = "A script to create and update mirrors of RPM repositories."
 DEFAULT_CONFIG = '/etc/mirror.yml'
@@ -85,7 +85,7 @@ class MirrorUpdate:
 
     def run_cmd(self, cmd):
         success, result = lib.shell3.shell_exec(cmd)
-        self.logger.debug('Running command "{cmd}".')
+        self.logger.debug(f'Running command "{cmd}".')
         if not success:
             self.logger.error(f'Failed to run "{cmd}": {result}')
             return False
@@ -221,12 +221,15 @@ class MirrorUpdate:
                 self.logger.error(f'Failed to get latest_version from github: {result}')
                 continue
             latest_version = result.get('tag_name', '').replace('v', '')
+            self.logger.info(f'latest_version = {latest_version}')
 
             # find the correct asset and download it
             rpm_regex = re.compile(repo.get('rpm_regex', DEFAULT_RPM_REGEX).format(latest_version=latest_version))
             for asset in result.get('assets', []):
                 name = asset.get('name')
+                self.logger.debug(f'trying to match against {name}')
                 if rpm_regex.fullmatch(name):
+                    self.logger.debug(f'matched {name}, trying to download')
                     target_file = os.path.join(target_path, name)
                     # only download if the files does not exist already
                     if not os.path.exists(target_file):
