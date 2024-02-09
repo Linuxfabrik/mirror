@@ -1,0 +1,4 @@
+Defaults:mirror !requiretty
+
+mirror ALL = NOPASSWD: /usr/bin/dnf clean expire-cache
+mirror ALL = NOPASSWD: /usr/bin/dnf repolist
