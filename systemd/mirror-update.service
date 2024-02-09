@@ -2,7 +2,7 @@
 Description=Update the mirror
 
 [Service]
-User=root
+User=mirror
 ExecStart=/opt/mirror/mirror-update
 # make sure we instantly see the output of the script in journald
 Environment=PYTHONUNBUFFERED=1

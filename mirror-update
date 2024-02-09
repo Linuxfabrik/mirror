@@ -155,8 +155,8 @@ class MirrorUpdate:
 
 
     def clean_repo_data(self):
-        self.run_cmd('dnf clean expire-cache')
-        self.run_cmd('dnf repolist')
+        self.run_cmd('sudo dnf clean expire-cache')
+        self.run_cmd('sudo dnf repolist')
 
 
     def update_reposync_repos(self):

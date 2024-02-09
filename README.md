@@ -25,6 +25,8 @@ Use a web server that points to the directory named `base_path` in the configura
 If using systemd, set up the timer and service to update your mirror at regular intervals:
 
 ```bash
+useradd --system --home-dir /opt/mirror --shell /bin/false mirror
+
 cd /opt/mirror
 cp -v systemd/mirror-update.service /etc/systemd/system/mirror-update.service
 cp -v systemd/mirror-update.timer /etc/systemd/system/mirror-update.timer
@@ -34,6 +36,24 @@ $EDITOR /etc/systemd/system/mirror-update.timer
 
 systemctl daemon-reload
 systemctl enable --now mirror-update.timer
+
+# allow the mirror user to run dnf via sudo
+cp -v mirror.sudoers /etc/sudoers.d/mirror
+
+# make sure the base path exists and can be access both by the webserver user and the mirror user
+webserver_user=apache
+base_path='/var/www/html/github-repos'
+
+mkdir -p "$base_path"
+
+setfacl --recursive --modify user:$webserver_user:rwx "$base_path"
+setfacl --recursive --modify user:$webserver_user:rwx "$base_path"
+
+setfacl --recursive --modify group:$webserver_user:rx "$base_path"
+setfacl --recursive --modify group:$webserver_user:rx "$base_path"
+
+setfacl --recursive --modify user:mirror:rwx "$base_path"
+setfacl --recursive --modify user:mirror:rwx --default "$base_path"
 ```
 
 
