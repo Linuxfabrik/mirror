@@ -1,9 +1,6 @@
 # Mirror
 
-A script to create and update mirrors of RPM repositories. Currently it supports:
-
-* mirroring RPM-based repositories using `reposync`
-* downloading RPM release assets from GitHub and creating a RPM repository using `createrepo`
+A script to create and update mirrors of RPM repositories using `reposync`.
 
 Runs on
 
@@ -19,7 +16,7 @@ cd /opt
 git clone --recurse-submodules https://github.com/Linuxfabrik/mirror.git
 ```
 
-Create your configuration. The default path is `/etc/mirror.yml`. Have a look at the `/opt/mirror/example.yml` file and the Synopsis below.
+Create your configuration. The default path is `/etc/mirror.yml`. Have a look at the `example.yml` file and the synopsis below.
 
 Install `yum-utils` and `createrepo`.
 
@@ -40,9 +37,7 @@ systemctl enable --now mirror-update.timer
 ```
 
 
-## How to Provide a Repository on your Mirror Server
-
-### RPM-based repository
+## How to Provide a RPM-based Repository on your Mirror Server
 
 If you want to provide an RPM-based repository, it must be present in `/etc/yum.repos.d`. However, it does not need to be enabled, so we generally recommend disabling it (to prevent the mirror server itself from accidentally using it).
 
@@ -85,21 +80,6 @@ chown -R apache:apache $BASE_PATH
 restorecon -Fvr $BASE_PATH
 ```
 
-
-### Repo from GitHub release assets
-
-This method allows you to create an RPM repository using RPM from the latest GitHub release of a project. For example, to create a repository for [mydumper](https://github.com/mydumper/mydumper), use the following config:
-
-```yaml
-base_path: '/var/www/html/mirror'
-github_repos:
-  - github_user: 'mydumper'
-    github_repo: 'mydumper'
-    relative_target_path: 'mydumper/el/8'
-    rpm_regex: 'mydumper-{latest_version}-\d\+.el8.x86_64.rpm'
-```
-
-
 ## Synopsis - The Configuration File
 
 `base_path`: Mandatory, string. Directory under which all the repos will be placed. This directory has to exist already and should be served by a webserver.
@@ -109,14 +89,6 @@ github_repos:
 * `repoid`: Mandatory, string. Repo-ID. Can be found using `dnf repolist`.
 * `relative_target_path`: Mandatory, string. Target path where the repo should be placed, relative to `base_path`.
 * `createrepo`: Optional, boolean. If `createrepo` should be ran on the repo after mirroring or not. Only use this if the mirrored repo is not idential to the upstream repo (for example due to `includepkgs` or `excludepkgs` directives). Else, you should avoid running it, since it destroys RHEL's module information. Defaults to `false`.
-
-`github_repos`: Optional, list. List of repositories to create from GitHub the latest release assets.<br>Subkeys:
-
-* `github_user`: Mandatory, string. The username of the GitHub repo path. For example, `'Linuxfabrik'`.
-* `github_repo`: Mandatory, string. The repo name. For example, `'mirror'`.
-* `relative_target_path`: Mandatory, string. Target path where the repo should be placed, relative to `base_path`.
-* `rpm_regex`: Optional, string. A [Python Regular Expression](https://docs.python.org/3/howto/regex.html) which will be matched against the names of the release assets to select the correct RPM file. You can use `{latest_version}` as a placeholder, which will be replaced by the latest version (retrieved via the GitHub API) before matching. Note that the regex should only match one file, as the first matching file will be downloaded. Defaults to `'.*{latest_version}.*\.rpm'`.
-* `number_of_rpms_to_keep`: Optional, int. Number of older RPM files to keep. Note that this simply deletes all older files matching `*.rpm` in the target path directory. Defaults to `3`.
 
 
 ## Exit Codes

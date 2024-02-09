@@ -9,9 +9,7 @@
 import argparse
 import logging
 import os
-import re
 import sys
-from pathlib import Path
 
 SYSTEMD = bool(os.getppid() == 1)
 if SYSTEMD:
@@ -23,9 +21,9 @@ import lib.shell3
 import lib.url3
 
 __author__ = 'Linuxfabrik GmbH, Zurich/Switzerland'
-__version__ = '2023082101'
+__version__ = '2024020901'
 
-DESCRIPTION = "A script to create and update mirrors of RPM repositories."
+DESCRIPTION = 'A script to create and update mirrors of RPM repositories.'
 DEFAULT_CONFIG = '/etc/mirror.yml'
 DEFAULT_RPM_REGEX = r'.*{latest_version}.*\.rpm'
 
@@ -148,28 +146,12 @@ class MirrorUpdate:
                     self.logger.error(f'The reposync repo "{repoid}" is missing the "{key}" key.')
                     valid = False
 
-        github_repos = self.config.get('github_repos', [])
-        github_repo_keys = [
-            'github_user',
-            'github_repo',
-            'relative_target_path',
-        ]
-        for repo in github_repos:
-            for key in github_repo_keys:
-                try:
-                    repo[key]
-                except KeyError:
-                    self.logger.error(f'The github repo "{repo.get("github_user", "")}/{repo.get("github_repo", "")}" is missing the "{key}" key.')
-                    valid = False
-
         return valid
 
 
     def run(self):
         self.clean_repo_data()
         self.update_reposync_repos()
-        self.update_github_repos()
-        self.chown_and_restorecon()
 
 
     def clean_repo_data(self):
@@ -203,64 +185,6 @@ class MirrorUpdate:
 
             self.logger.info(f'{repo["repoid"]} end')
         self.logger.info('--- End of reposync repos ---')
-
-
-    def update_github_repos(self):
-        self.logger.info('--- Start of GitHub repos ---')
-        for repo in self.config.get('github_repos', []):
-            target_path = os.path.join(self.config["base_path"], repo["relative_target_path"])
-            self.logger.info(f'{repo["github_user"]}/{repo["github_repo"]} to {target_path} start')
-
-            if not self.mkdir(target_path):
-                continue
-
-            # get the latest version and the asset information from github
-            github_url = f'https://api.github.com/repos/{repo["github_user"]}/{repo["github_repo"]}/releases/latest'
-            success, result = lib.url3.fetch_json(github_url)
-            if not success:
-                self.logger.error(f'Failed to get latest_version from github: {result}')
-                continue
-            latest_version = result.get('tag_name', '').replace('v', '')
-            self.logger.info(f'latest_version = {latest_version}')
-
-            # find the correct asset and download it
-            rpm_regex = re.compile(repo.get('rpm_regex', DEFAULT_RPM_REGEX).format(latest_version=latest_version))
-            for asset in result.get('assets', []):
-                name = asset.get('name')
-                self.logger.debug(f'trying to match against {name}')
-                if rpm_regex.fullmatch(name):
-                    self.logger.debug(f'matched {name}, trying to download')
-                    target_file = os.path.join(target_path, name)
-                    # only download if the files does not exist already
-                    if not os.path.exists(target_file):
-                        url = asset.get('browser_download_url')
-                        success, result = lib.url3.fetch(url, to_text=False)
-                        if not success:
-                            self.logger.error(f'Failed to download "{url}": {result}.')
-                            continue
-
-                        with open(target_file, 'wb') as out_file:
-                            out_file.write(result)
-                    break
-
-            # make sure there are number_of_rpms_to_keep rpms in the target path
-            path = Path(target_path)
-            for entry in sorted(path.glob('*.rpm'), key=lambda x: x.stat().st_mtime)[:-repo.get('number_of_rpms_to_keep', 3)]:
-                self.logger.info(f'Deleting {entry}.')
-                os.remove(entry)
-
-            # run createrepo on the target path
-            cmd = createrepo_command.format(TARGET_PATH=target_path)
-            if not self.run_cmd(cmd):
-                continue
-            self.logger.info(f'{repo["github_user"]}/{repo["github_repo"]} to {target_path} end')
-
-        self.logger.info('--- End of GitHub repos ---')
-
-
-    def chown_and_restorecon(self):
-        self.run_cmd(f'chown -R apache:apache {self.config["base_path"]}')
-        self.run_cmd(f'restorecon -Fr {self.config["base_path"]}')
 
 
 def main():
