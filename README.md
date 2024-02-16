@@ -92,7 +92,7 @@ Now run the commands manually for the first time to accept the GPG keys. For exa
 BASE_PATH='/var/www/html/mirror'
 REPOID='mirror-rhel8-mariadb-10.6'
 RELATIVE_TARGET_PATH='MariaDB/mariadb-10.6/yum/rhel/8/x86_64'
-reposync --repoid="$REPOID" --download-path="$BASE_PATH/$RELATIVE_TARGET_PATH" --norepopath --downloadcomps --download-metadata
+sudo -u mirror reposync --repoid="$REPOID" --download-path="$BASE_PATH/$RELATIVE_TARGET_PATH" --norepopath --downloadcomps --download-metadata
 
 # createrepo "$BASE_PATH/$RELATIVE_TARGET_PATH"
 
