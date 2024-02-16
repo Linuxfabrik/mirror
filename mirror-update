@@ -168,7 +168,7 @@ class MirrorUpdate:
             if not self.mkdir(target_path):
                 continue
 
-            cmd = "reposync --delete --repoid='{REPOID}' --download-path='{TARGET_PATH}' --norepopath --downloadcomps --download-metadata".format(
+            cmd = "reposync --assumeyes --delete --repoid='{REPOID}' --download-path='{TARGET_PATH}' --norepopath --downloadcomps --download-metadata".format(
                 REPOID=repo["repoid"],
                 TARGET_PATH=target_path,
             )
