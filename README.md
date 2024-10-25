@@ -5,6 +5,7 @@ A script to create and update mirrors of RPM repositories using `reposync`.
 Runs on
 
 * RHEL 8 (and compatible)
+* RHEL 9 (and compatible)
 
 
 ## Installation
