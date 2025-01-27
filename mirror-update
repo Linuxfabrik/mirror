@@ -21,7 +21,7 @@ import lib.shell3
 import lib.url3
 
 __author__ = 'Linuxfabrik GmbH, Zurich/Switzerland'
-__version__ = '2024020901'
+__version__ = '2025012701'
 
 DESCRIPTION = 'A script to create and update mirrors of RPM repositories.'
 DEFAULT_CONFIG = '/etc/mirror.yml'
@@ -168,7 +168,7 @@ class MirrorUpdate:
             if not self.mkdir(target_path):
                 continue
 
-            cmd = "reposync --assumeyes --delete --repoid='{REPOID}' --download-path='{TARGET_PATH}' --norepopath --downloadcomps --download-metadata".format(
+            cmd = "reposync --assumeyes --delete --download-metadata--download-path='{TARGET_PATH}' --downloadcomps --newest-only --norepopath --repoid='{REPOID}'".format(
                 REPOID=repo["repoid"],
                 TARGET_PATH=target_path,
             )
