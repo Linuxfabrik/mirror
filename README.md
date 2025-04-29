@@ -48,13 +48,13 @@ base_path='/var/www/html/github-repos'
 mkdir -p "$base_path"
 
 setfacl --recursive --modify user:$webserver_user:rwx "$base_path"
-setfacl --recursive --modify user:$webserver_user:rwx "$base_path"
+setfacl --default --recursive --modify user:$webserver_user:rwx "$base_path"
 
 setfacl --recursive --modify group:$webserver_user:rx "$base_path"
-setfacl --recursive --modify group:$webserver_user:rx "$base_path"
+setfacl --default --recursive --modify group:$webserver_user:rx "$base_path"
 
 setfacl --recursive --modify user:mirror:rwx "$base_path"
-setfacl --recursive --modify user:mirror:rwx --default "$base_path"
+setfacl --default --recursive --modify user:mirror:rwx "$base_path"
 ```
 
 
