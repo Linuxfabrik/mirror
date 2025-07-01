@@ -5,11 +5,4 @@ reposync_repos:
   - repoid: 'rocky8-appstream'
     relative_target_path: 'rocky/8/AppStream/x86_64/os/'
     createrepo: true
-
-github_repos:
-
-  - github_user: 'maxbube'
-    github_repo: 'mydumper'
-    relative_target_path: 'mydumper/el/8'
-    rpm_regex: 'mydumper-{latest_version}[-\d]*.el8.x86_64.rpm'
-    number_of_rpms_to_keep: 3
+    keep_old_rpms: false

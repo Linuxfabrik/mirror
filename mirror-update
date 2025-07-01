@@ -168,10 +168,18 @@ class MirrorUpdate:
             if not self.mkdir(target_path):
                 continue
 
-            cmd = "reposync --assumeyes --delete --download-metadata --download-path='{TARGET_PATH}' --downloadcomps --newest-only --norepopath --repoid='{REPOID}'".format(
+            cmd_args = "--assumeyes --download-metadata --download-path='{TARGET_PATH}' --downloadcomps --newest-only --norepopath --repoid='{REPOID}'".format(
                 REPOID=repo["repoid"],
                 TARGET_PATH=target_path,
             )
+    
+            if "keep_old_rpms" not in repo or repo["keep_old_rpms"] == False:
+                cmd_args = cmd_args + " --delete"
+    
+            cmd = "reposync {CMD_ARGS}".format(
+                CMD_ARGS=cmd_args,
+            )
+
             if not self.run_cmd(cmd):
                 continue
 
