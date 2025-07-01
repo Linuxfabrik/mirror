@@ -4,9 +4,8 @@ A script to create and update mirrors of RPM repositories using `reposync`.
 
 Runs on
 
-* RHEL 8 (and compatible)
-* RHEL 9 (and compatible)
-
+- RHEL 8 (and compatible)
+- RHEL 9 (and compatible)
 
 ## Installation
 
@@ -57,7 +56,6 @@ setfacl --recursive --modify user:mirror:rwx "$base_path"
 setfacl --default --recursive --modify user:mirror:rwx "$base_path"
 ```
 
-
 ## How to Provide a RPM-based Repository on your Mirror Server
 
 If you want to provide an RPM-based repository, it must be present in `/etc/yum.repos.d`. However, it does not need to be enabled, so we generally recommend disabling it (to prevent the mirror server itself from accidentally using it).
@@ -79,10 +77,10 @@ module_hotfixes = 1
 In `/etc/mirror.yml`, set the location for the repo to be mirrored. This path should be unique to prevent multiple repos from overwriting each other. The path will then be created by the script.
 
 ```yaml
-base_path: '/var/www/html/mirror'
+base_path: "/var/www/html/mirror"
 reposync_repos:
-  - repoid: 'mirror-rhel8-mariadb-10.6'
-    relative_target_path: 'MariaDB/mariadb-10.6/yum/rhel/8/x86_64'
+  - repoid: "mirror-rhel8-mariadb-10.6"
+    relative_target_path: "MariaDB/mariadb-10.6/yum/rhel/8/x86_64"
 ```
 
 Determine whether or not it is necessary to run `createrepo`. If the mirrored repo is not identical to the upstream repo (e.g. due to `includepkgs` or `excludepkgs` directives), you need to run `createrepo`. If this is not the case, you should avoid running it, as it will destroy RHEL's module information.
@@ -107,12 +105,12 @@ restorecon -Fvr $BASE_PATH
 
 `reposync_repos`: Optional, list. List of repositories to mirror using `reposync`.<br>Subkeys:
 
-* `repoid`: Mandatory, string. Repo-ID. Can be found using `dnf repolist`.
-* `relative_target_path`: Mandatory, string. Target path where the repo should be placed, relative to `base_path`.
-* `createrepo`: Optional, boolean. If `createrepo` should be ran on the repo after mirroring or not. Only use this if the mirrored repo is not idential to the upstream repo (for example due to `includepkgs` or `excludepkgs` directives). Else, you should avoid running it, since it destroys RHEL's module information. Defaults to `false`.
-
+- `repoid`: Mandatory, string. Repo-ID. Can be found using `dnf repolist`.
+- `relative_target_path`: Mandatory, string. Target path where the repo should be placed, relative to `base_path`.
+- `createrepo`: Optional, boolean. If `createrepo` should be ran on the repo after mirroring or not. Only use this if the mirrored repo is not idential to the upstream repo (for example due to `includepkgs` or `excludepkgs` directives). Else, you should avoid running it, since it destroys RHEL's module information. Defaults to `false`.
+- `keep_old_rpms`: Optional, boolean. If set to `true`, the reposync command is executed without the `--delete` flag to keep older packages. Defaults to `false`.
 
 ## Exit Codes
 
-* 0: success / config valid
-* 1: failed to read config / config invalid
+- 0: success / config valid
+- 1: failed to read config / config invalid
