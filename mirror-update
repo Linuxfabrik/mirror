@@ -21,7 +21,7 @@ import lib.shell3
 import lib.url3
 
 __author__ = 'Linuxfabrik GmbH, Zurich/Switzerland'
-__version__ = '2025012701'
+__version__ = '2025120101'
 
 DESCRIPTION = 'A script to create and update mirrors of RPM repositories.'
 DEFAULT_CONFIG = '/etc/mirror.yml'
@@ -73,8 +73,6 @@ def init_logging():
     return logger
 
 
-
-
 class MirrorUpdate:
     def __init__(self, config, logger):
         self.config = config
@@ -83,7 +81,7 @@ class MirrorUpdate:
 
     def run_cmd(self, cmd):
         success, result = lib.shell3.shell_exec(cmd)
-        self.logger.debug(f'Running command "{cmd}".')
+        self.logger.info(f'Running command "{cmd}".')
         if not success:
             self.logger.error(f'Failed to run "{cmd}": {result}')
             return False
@@ -155,20 +153,20 @@ class MirrorUpdate:
 
 
     def clean_repo_data(self):
-        self.run_cmd('sudo dnf clean expire-cache')
+        self.run_cmd('sudo dnf clean all')
         self.run_cmd('sudo dnf repolist')
 
 
     def update_reposync_repos(self):
         self.logger.info('--- Start of reposync repos ---')
         for repo in self.config.get('reposync_repos', []):
-            self.logger.info(f'{repo["repoid"]} start')
+            self.logger.info(f'start {repo["repoid"]}')
 
             target_path = os.path.join(self.config["base_path"], repo["relative_target_path"])
             if not self.mkdir(target_path):
                 continue
 
-            cmd = "reposync --assumeyes --delete --download-metadata --download-path='{TARGET_PATH}' --downloadcomps --newest-only --norepopath --repoid='{REPOID}'".format(
+            cmd = "reposync --assumeyes --delete --download-metadata --download-path='{TARGET_PATH}' --downloadcomps --newest-only --norepopath --refresh --repoid='{REPOID}'".format(
                 REPOID=repo["repoid"],
                 TARGET_PATH=target_path,
             )
@@ -183,7 +181,7 @@ class MirrorUpdate:
                 if not self.run_cmd(cmd):
                     continue
 
-            self.logger.info(f'{repo["repoid"]} end')
+            self.logger.info(f'end {repo["repoid"]}')
         self.logger.info('--- End of reposync repos ---')
 
 
