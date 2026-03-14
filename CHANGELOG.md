@@ -11,3 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Breaking Changes
 
 * moved functionality to create RPM repositories from GitHub releases to its own script: [github-project-createrepo](https://github.com/Linuxfabrik/github-project-createrepo)
+
+### Fixed
+
+* mirror failing to update due wrong sudoers entry
