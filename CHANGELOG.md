@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Breaking Changes
 
 * moved functionality to create RPM repositories from GitHub releases to its own script: [github-project-createrepo](https://github.com/Linuxfabrik/github-project-createrepo)
+* the built-in special case that synced all versions for any repository whose ID contained `icinga` has been removed. Such repositories now follow the global default (`--newest-only`) unless `newest_only: false` is set explicitly per repository in `/etc/mirror.yml`. Admins who relied on the previous implicit behavior must add `newest_only: false` to those entries, otherwise older package versions will be deleted on the next mirror run.
 
 ### Added
 
