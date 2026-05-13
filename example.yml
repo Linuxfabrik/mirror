@@ -5,6 +5,7 @@ reposync_repos:
   - repoid: 'rocky8-appstream'
     relative_target_path: 'rocky/8/AppStream/x86_64/os/'
     createrepo: true
+    newest_only: true
 
 github_repos:
 

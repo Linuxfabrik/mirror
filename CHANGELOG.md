@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-* `ALL_VERSIONS_REPOS`: list of repo name substrings that should sync all versions instead of only the newest; repos matching any entry have `--newest-only` omitted from the reposync command
+* per-repository `newest_only` option in `/etc/mirror.yml` (boolean, default `true`) to control whether `reposync` mirrors only the newest version of each package or all versions; set to `false` for repositories like Icinga that need to keep older versions
 
 ### Fixed
 

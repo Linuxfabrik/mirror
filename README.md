@@ -110,6 +110,7 @@ restorecon -Fvr $BASE_PATH
 * `repoid`: Mandatory, string. Repo-ID. Can be found using `dnf repolist`.
 * `relative_target_path`: Mandatory, string. Target path where the repo should be placed, relative to `base_path`.
 * `createrepo`: Optional, boolean. If `createrepo` should be ran on the repo after mirroring or not. Only use this if the mirrored repo is not idential to the upstream repo (for example due to `includepkgs` or `excludepkgs` directives). Else, you should avoid running it, since it destroys RHEL's module information. Defaults to `false`.
+* `newest_only`: Optional, boolean. If `true` (or empty/unset), only the newest version of each package is mirrored (passes `--newest-only` to `reposync`). Set to `false` explicitly to mirror all versions, e.g. for repositories like Icinga that ship multiple versions in parallel. Defaults to `true`.
 
 
 ## Exit Codes

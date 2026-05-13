@@ -21,12 +21,11 @@ import lib.shell3
 import lib.url3
 
 __author__ = 'Linuxfabrik GmbH, Zurich/Switzerland'
-__version__ = '2026050701'
+__version__ = '2026051301'
 
 DESCRIPTION = 'A script to create and update mirrors of RPM repositories.'
 DEFAULT_CONFIG = '/etc/mirror.yml'
 DEFAULT_RPM_REGEX = r'.*{latest_version}.*\.rpm'
-ALL_VERSIONS_REPOS = ["icinga"]  # repos that keep all versions, not just the newest (omits --newest-only)
 
 createrepo_command = "createrepo '{TARGET_PATH}' --update"
 
@@ -167,7 +166,7 @@ class MirrorUpdate:
             if not self.mkdir(target_path):
                 continue
 
-            newest_only = '' if any(name in repo["repoid"] for name in ALL_VERSIONS_REPOS) else '--newest-only'
+            newest_only = '' if repo.get('newest_only') is False else '--newest-only'
             cmd = "reposync --assumeyes --delete --download-metadata --download-path='{TARGET_PATH}' --downloadcomps {NEWEST_ONLY} --norepopath --refresh --repoid='{REPOID}'".format(
                 REPOID=repo["repoid"],
                 TARGET_PATH=target_path,
